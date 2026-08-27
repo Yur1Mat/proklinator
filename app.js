@@ -32,7 +32,22 @@ const counter = document.querySelector('#reason-counter');
 
 const telegram = window.Telegram?.WebApp;
 telegram?.ready(); telegram?.expand();
-telegram?.setHeaderColor?.('#0b0a0d'); telegram?.setBackgroundColor?.('#0b0a0d');
+telegram?.setHeaderColor?.('#0b0a0d'); telegram?.setBackgroundColor?.('#0b0a0d'); telegram?.setBottomBarColor?.('#0b0a0d');
+
+function syncViewport() {
+  const stableHeight = telegram?.viewportStableHeight || window.visualViewport?.height || window.innerHeight;
+  const visibleHeight = window.visualViewport?.height || window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', `${Math.round(stableHeight)}px`);
+  document.documentElement.style.setProperty('--visual-viewport-height', `${Math.round(visibleHeight)}px`);
+  document.documentElement.classList.toggle('keyboard-open', visibleHeight < stableHeight * 0.78);
+}
+
+syncViewport();
+telegram?.onEvent?.('viewportChanged', syncViewport);
+telegram?.onEvent?.('safeAreaChanged', syncViewport);
+telegram?.onEvent?.('contentSafeAreaChanged', syncViewport);
+window.visualViewport?.addEventListener('resize', syncViewport);
+window.addEventListener('orientationchange', syncViewport);
 
 try {
   const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
@@ -69,11 +84,16 @@ form.addEventListener('submit', (event) => {
   document.querySelector('#result-reason').textContent = `«${reason}»`;
   document.querySelector('#result-verdict').textContent = variant.verdict;
   formScreen.classList.add('hidden'); resultScreen.classList.remove('hidden');
+  telegram?.BackButton?.show();
   document.querySelector('#result-title').focus(); window.scrollTo(0, 0);
 });
 
-document.querySelector('#reset-button').addEventListener('click', () => {
+function resetCurse() {
   resultScreen.classList.add('hidden'); formScreen.classList.remove('hidden');
   nameInput.value = ''; reasonInput.value = ''; counter.textContent = '0/300';
+  telegram?.BackButton?.hide();
   localStorage.removeItem(DRAFT_KEY); window.scrollTo(0, 0); nameInput.focus();
-});
+}
+
+document.querySelector('#reset-button').addEventListener('click', resetCurse);
+telegram?.BackButton?.onClick(resetCurse);
