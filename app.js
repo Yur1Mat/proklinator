@@ -31,6 +31,7 @@ const reasonInput = document.querySelector('#reason');
 const counter = document.querySelector('#reason-counter');
 
 const telegram = window.Telegram?.WebApp;
+document.documentElement.classList.toggle('telegram-miniapp', Boolean(telegram?.initData));
 telegram?.ready(); telegram?.expand();
 telegram?.setHeaderColor?.('#0b0a0d'); telegram?.setBackgroundColor?.('#0b0a0d'); telegram?.setBottomBarColor?.('#0b0a0d');
 
