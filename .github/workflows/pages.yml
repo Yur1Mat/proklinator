@@ -28,6 +28,7 @@ jobs:
           cp index.html app.js _site/
           mkdir _site/app
           cp app/globals.css _site/app/
+          cp app/ritual-bg.webp _site/app/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
