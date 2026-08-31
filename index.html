@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#130406" />
     <meta name="description" content="Назови имя, изложи причину — и пусть Проклимёт выберет одно из двадцати проклятий." />
-    <title>Проклимёт — цифровая ритуальная служба</title>
+    <title>Проклимёт</title>
     <link rel="stylesheet" href="./app/globals.css" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
     <script src="./app.js" defer></script>
@@ -13,22 +13,20 @@
   <body>
     <main class="app-shell" id="form-screen">
       <div class="noise"></div>
-      <header class="brand">
-        <div class="brand-mark" aria-hidden="true"><span>⛧</span></div>
-        <div><p class="eyebrow">Цифровая ритуальная служба</p><h1>Проклимёт</h1></div>
-      </header>
-      <section class="intro">
-        <p class="edition">Выпуск № 01 · двадцать печатей</p>
-        <h2>Ты можешь проклясть <em>любого.</em></h2>
+      <div class="ritual-content">
+        <section class="intro">
+        <div class="ritual-mark" aria-hidden="true"><span>⛧</span></div>
+        <h1>Прокляни <em>любого</em></h1>
         <p class="description">Назови имя, изложи причину — и пусть случай решит, какое мелкое проклятие настигнет виновного.</p>
-      </section>
-      <form class="curse-form" id="curse-form">
-        <label for="name">Имя</label>
-        <input id="name" name="name" type="text" maxlength="60" required autocomplete="off" placeholder="Кого проклинаем?" />
-        <div class="label-row"><label for="reason">За что проклинаю</label><span id="reason-counter">0/300</span></div>
-        <textarea id="reason" name="reason" rows="5" maxlength="300" required placeholder="Опиши проступок во всех подробностях…"></textarea>
-        <button class="curse-button" type="submit"><span>Проклинаю</span><span aria-hidden="true">↗</span></button>
-      </form>
+        </section>
+        <form class="curse-form" id="curse-form">
+          <label for="name">Имя</label>
+          <input id="name" name="name" type="text" maxlength="60" required autocomplete="off" placeholder="Кого проклинаем?" />
+          <div class="label-row"><label for="reason">За что проклинаю</label><span id="reason-counter">0/300</span></div>
+          <textarea id="reason" name="reason" rows="5" maxlength="300" required placeholder="Опиши проступок во всех подробностях…"></textarea>
+          <button class="curse-button" type="submit"><span>Проклинаю</span></button>
+        </form>
+      </div>
       <footer>Никакой магии. Только заслуженное облегчение.</footer>
     </main>
 
