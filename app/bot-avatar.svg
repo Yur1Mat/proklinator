@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Проклимёт — аватар бота</title>
+  <desc id="desc">Круглая бордовая эмблема с костяным черепом барана и красными рогами.</desc>
+  <defs>
+    <radialGradient id="bg">
+      <stop stop-color="#4e1023"/>
+      <stop offset=".72" stop-color="#21060e"/>
+      <stop offset="1" stop-color="#0e0206"/>
+    </radialGradient>
+    <linearGradient id="horn" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ed4a60"/>
+      <stop offset=".48" stop-color="#b71c39"/>
+      <stop offset="1" stop-color="#570a22"/>
+    </linearGradient>
+    <linearGradient id="bone" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f4e8d2"/>
+      <stop offset="1" stop-color="#b7a28b"/>
+    </linearGradient>
+    <g id="left-horn">
+      <path d="M432 366C406 263 323 211 238 241C148 273 127 373 157 459C179 521 225 553 291 532C329 520 350 490 348 457C345 413 313 392 280 397C319 429 308 466 279 471C242 476 213 441 211 391C208 333 243 298 285 300C330 303 355 341 371 399Z" fill="url(#horn)" stroke="#f66c78" stroke-width="5" stroke-linejoin="round"/>
+      <g fill="none" stroke="#48091b" stroke-width="12" stroke-linecap="round">
+        <path d="M370 291L345 329M324 255L315 307M269 242L273 299M214 257L239 311M174 296L216 333M153 348L211 364M154 404L216 399M172 459L235 436M210 505L259 464M258 534L278 476"/>
+      </g>
+    </g>
+  </defs>
+  <circle cx="512" cy="512" r="512" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="472" fill="none" stroke="#7d1b34" stroke-width="3"/>
+  <circle cx="512" cy="512" r="453" fill="none" stroke="#5b1529" stroke-width="2"/>
+  <path d="M512 172L592 398L830 402L640 546L707 774L512 638L317 774L384 546L194 402L432 398Z" fill="none" stroke="#85203b" stroke-width="5" opacity=".4"/>
+  <use href="#left-horn"/>
+  <use href="#left-horn" transform="translate(1024 0) scale(-1 1)"/>
+  <path d="M512 288L577 327L607 405L649 475L618 554L581 588L565 675L544 748L512 805L480 748L459 675L443 588L406 554L375 475L417 405L447 327Z" fill="url(#bone)" stroke="#3a0714" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M512 296L512 797M449 336L477 401L459 439M575 336L547 401L565 439M421 550L464 569L481 662M603 550L560 569L543 662" fill="none" stroke="#85705d" stroke-width="5" opacity=".65"/>
+  <path d="M410 474L480 450L470 524L434 544Z" fill="#20040d"/>
+  <path d="M614 474L544 450L554 524L590 544Z" fill="#20040d"/>
+  <path d="M425 492L464 480M599 492L560 480" fill="none" stroke="#cf2447" stroke-width="7" stroke-linecap="round"/>
+  <path d="M492 657L485 716L503 746L505 686ZM532 657L539 716L521 746L519 686Z" fill="#2a0610"/>
+  <path d="M512 331L538 392L512 424L486 392Z" fill="#a81736"/>
+  <path d="M512 351V407M494 386H530" fill="none" stroke="#efddc1" stroke-width="4"/>
+  <path d="M463 559L458 605L471 585M561 559L566 605L553 585" fill="#9d1230"/>
+  <g fill="#c12a47">
+    <path d="M512 116L523 141L512 166L501 141Z"/>
+    <path d="M141 501L166 512L141 523L116 512Z"/>
+    <path d="M883 501L908 512L883 523L858 512Z"/>
+    <path d="M512 858L523 883L512 908L501 883Z"/>
+  </g>
+</svg>
