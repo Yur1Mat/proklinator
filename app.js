@@ -35,6 +35,18 @@ document.documentElement.classList.toggle('telegram-miniapp', Boolean(telegram?.
 telegram?.ready(); telegram?.expand();
 telegram?.setHeaderColor?.('#130406'); telegram?.setBackgroundColor?.('#100204'); telegram?.setBottomBarColor?.('#100204');
 
+function requestMobileFullscreen() {
+  const isMobileTelegram = ['ios', 'android'].includes(telegram?.platform);
+  if (!isMobileTelegram || telegram.isFullscreen ||
+      !telegram.isVersionAtLeast?.('8.0') || typeof telegram.requestFullscreen !== 'function') return;
+  try {
+    telegram.requestFullscreen();
+  } catch {
+    // Older clients can reject fullscreen; the expanded Mini App remains usable.
+    syncViewport();
+  }
+}
+
 function syncViewport() {
   const stableHeight = telegram?.viewportStableHeight || window.visualViewport?.height || window.innerHeight;
   const visibleHeight = window.visualViewport?.height || window.innerHeight;
@@ -47,8 +59,11 @@ syncViewport();
 telegram?.onEvent?.('viewportChanged', syncViewport);
 telegram?.onEvent?.('safeAreaChanged', syncViewport);
 telegram?.onEvent?.('contentSafeAreaChanged', syncViewport);
+telegram?.onEvent?.('fullscreenChanged', syncViewport);
+telegram?.onEvent?.('fullscreenFailed', syncViewport);
 window.visualViewport?.addEventListener('resize', syncViewport);
 window.addEventListener('orientationchange', syncViewport);
+requestMobileFullscreen();
 
 try {
   const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
