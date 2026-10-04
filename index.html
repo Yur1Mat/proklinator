@@ -34,16 +34,21 @@
       <div class="noise"></div><span class="orbit orbit-one" aria-hidden="true"></span><span class="orbit orbit-two" aria-hidden="true"></span>
       <section class="result-card" aria-live="polite">
         <p class="result-kicker" id="result-kicker"></p>
-        <div class="sigil" aria-hidden="true"><span id="result-symbol"></span></div>
+        <div class="sigil" aria-hidden="true"><img id="result-symbol" src="./app/ram-skull.png" alt="" /></div>
         <h1 id="result-title" tabindex="-1"></h1>
         <p class="target" id="result-name"></p><p class="reason-label">за то, что</p><p class="reason" id="result-reason"></p>
         <div class="verdict"><span>Приговор</span><p id="result-verdict"></p></div>
         <button class="secondary-button" id="reset-button" type="button">Проклясть ещё кого-нибудь</button>
         <div class="result-actions">
-          <button class="secondary-button" id="pardon-button" type="button">Помиловать</button>
+          <button class="secondary-button" id="pardon-button" type="button"><img class="button-wing wing-left" src="./app/angel-wings.png" alt="" /><span>Помиловать</span><img class="button-wing wing-right" src="./app/angel-wings.png" alt="" /></button>
           <button class="secondary-button" id="share-button" type="button">Поделиться</button>
         </div>
         <p class="action-status" id="action-status" role="status"></p>
+        <div id="share-fallback" class="share-fallback hidden">
+          <a id="download-card" download>Сохранить картинку</a>
+          <a id="telegram-share" target="_blank" rel="noopener">Открыть Telegram</a>
+          <p>Сохрани картинку и прикрепи её в выбранном чате.</p>
+        </div>
       </section>
     </main>
   </body>

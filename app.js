@@ -31,6 +31,88 @@ const reasonInput = document.querySelector('#reason');
 const counter = document.querySelector('#reason-counter');
 let currentCurse = null;
 const actionStatus = document.querySelector('#action-status');
+const BOT_URL = 'https://t.me/proklinayu_bot';
+const shareButton = document.querySelector('#share-button');
+let shareFile = null;
+let shareObjectUrl = null;
+let cardRevision = 0;
+
+function loadCardImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Image unavailable'));
+    image.src = src;
+  });
+}
+
+function cardText(ctx, text, y, font, color, width, lineHeight) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  const lines = [];
+  let line = '';
+  for (const char of text) {
+    if (char === '\n' || ctx.measureText(line + char).width > width) {
+      lines.push(line.trim());
+      line = char === '\n' ? '' : char;
+    } else line += char;
+  }
+  if (line) lines.push(line.trim());
+  for (const item of lines) { ctx.fillText(item, 540, y); y += lineHeight; }
+  return y;
+}
+
+async function prepareShareCard() {
+  const revision = ++cardRevision;
+  const curse = { ...currentCurse };
+  shareFile = null;
+  shareButton.disabled = true;
+  document.querySelector('#share-fallback').classList.add('hidden');
+  if (shareObjectUrl) URL.revokeObjectURL(shareObjectUrl);
+  shareObjectUrl = null;
+  try {
+    await document.fonts.ready;
+    const emblem = await loadCardImage(curse.pardoned ? './app/angel-wings.png' : './app/ram-skull.png');
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080; canvas.height = 2600;
+    const ctx = canvas.getContext('2d');
+    const accent = curse.pardoned ? '#91d991' : '#e05262';
+    const background = ctx.createRadialGradient(540, 350, 30, 540, 650, 1300);
+    background.addColorStop(0, curse.pardoned ? '#21472d' : '#490b1c');
+    background.addColorStop(1, curse.pardoned ? '#06140b' : '#100204');
+    ctx.fillStyle = background; ctx.fillRect(0, 0, 1080, 2600);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    let y = cardText(ctx, `ПРОКЛЯТИЕ № ${curse.code}`, 85, '26px "Old Standard TT"', accent, 920, 36);
+    ctx.drawImage(emblem, 355, y + 10, 370, 370);
+    y = cardText(ctx, curse.pardoned ? 'Помилован' : curse.title, y + 400, '64px "Ruslan Display"', '#e9dfd2', 900, 70);
+    y = cardText(ctx, curse.name, y + 32, '52px "Ruslan Display"', accent, 900, 60);
+    y = cardText(ctx, 'ЗА ТО, ЧТО', y + 28, '24px "Old Standard TT"', '#b4a89b', 900, 30);
+    y = cardText(ctx, `«${curse.reason}»`, y + 16, 'italic 32px "Old Standard TT"', '#e9dfd2', 900, 42);
+    ctx.strokeStyle = accent; ctx.beginPath(); ctx.moveTo(90, y + 25); ctx.lineTo(990, y + 25); ctx.stroke();
+    y = cardText(ctx, curse.pardoned ? 'МИЛОСТЬ ДАРОВАНА' : 'ПРИГОВОР', y + 55, '26px "Old Standard TT"', accent, 900, 34);
+    y = cardText(ctx, curse.pardoned ? 'Проклятие снято. Сегодня тьма отпускает с миром.' : curse.verdict, y + 20, '34px "Old Standard TT"', '#e9dfd2', 900, 44);
+    const footerY = Math.max(1625, y + 80);
+    cardText(ctx, 'ПРОКЛИМЁТ', footerY, '38px "Ruslan Display"', accent, 900, 48);
+    cardText(ctx, BOT_URL, footerY + 70, '30px "Old Standard TT"', '#e9dfd2', 900, 38);
+    const output = document.createElement('canvas');
+    output.width = 1080; output.height = footerY + 175;
+    const outputContext = output.getContext('2d');
+    outputContext.drawImage(canvas, 0, 0);
+    outputContext.strokeStyle = accent; outputContext.lineWidth = 2;
+    outputContext.strokeRect(30, 30, 1020, output.height - 60);
+    const blob = await new Promise((resolve, reject) => output.toBlob(value => value ? resolve(value) : reject(new Error('Export failed')), 'image/png'));
+    if (revision !== cardRevision) return;
+    shareFile = new File([blob], `proklimet-${curse.code}.png`, { type: 'image/png' });
+    shareObjectUrl = URL.createObjectURL(blob);
+    const download = document.querySelector('#download-card');
+    download.href = shareObjectUrl; download.download = shareFile.name;
+    document.querySelector('#telegram-share').href = `https://t.me/share/url?url=${encodeURIComponent(BOT_URL)}&text=${encodeURIComponent(`${curse.name} — ${curse.pardoned ? 'помилован' : curse.title}`)}`;
+  } catch {
+    if (revision === cardRevision) actionStatus.textContent = 'Картинка не загрузилась. Нажми «Поделиться», чтобы попробовать ещё раз.';
+  } finally {
+    if (revision === cardRevision) shareButton.disabled = false;
+  }
+}
 
 function createCurseCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -102,13 +184,14 @@ form.addEventListener('submit', (event) => {
   currentCurse = { ...record, title: variant.title, verdict: variant.verdict, pardoned: false };
   actionStatus.textContent = '';
   document.querySelector('#pardon-button').disabled = false;
+  resultScreen.classList.remove('pardoned');
   localStorage.setItem(HISTORY_KEY, JSON.stringify([record, ...history].slice(0, 20)));
   telegram?.HapticFeedback?.impactOccurred('heavy');
 
   resultScreen.style.setProperty('--accent', variant.accent);
   resultScreen.style.setProperty('--glow', variant.glow);
   document.querySelector('#result-kicker').textContent = `Проклятие № ${record.code}`;
-  document.querySelector('#result-symbol').textContent = '☠';
+  document.querySelector('#result-symbol').src = './app/ram-skull.png';
   document.querySelector('#result-title').textContent = variant.title;
   document.querySelector('#result-name').textContent = name;
   document.querySelector('#result-reason').textContent = `«${reason}»`;
@@ -116,10 +199,15 @@ form.addEventListener('submit', (event) => {
   formScreen.classList.add('hidden'); resultScreen.classList.remove('hidden');
   telegram?.BackButton?.show();
   document.querySelector('#result-title').focus(); window.scrollTo(0, 0);
+  prepareShareCard();
 });
 
 function resetCurse() {
   currentCurse = null;
+  cardRevision++;
+  shareFile = null;
+  if (shareObjectUrl) URL.revokeObjectURL(shareObjectUrl);
+  shareObjectUrl = null;
   resultScreen.classList.add('hidden'); formScreen.classList.remove('hidden');
   nameInput.value = ''; reasonInput.value = ''; counter.textContent = '0/300';
   telegram?.BackButton?.hide();
@@ -137,32 +225,33 @@ document.querySelector('#pardon-button').addEventListener('click', () => {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.map(record => record.id === currentCurse.id ? { ...record, pardoned: true } : record)));
   document.querySelector('#result-title').textContent = 'Помилован';
   document.querySelector('#result-verdict').textContent = 'Проклятие снято. Сегодня тьма отпускает с миром.';
-  document.querySelector('#result-symbol').textContent = '⛧';
+  resultScreen.classList.add('pardoned');
+  document.querySelector('#result-symbol').src = './app/angel-wings.png';
   document.querySelector('#pardon-button').disabled = true;
   actionStatus.textContent = 'Милость дарована.';
   telegram?.HapticFeedback?.notificationOccurred('success');
+  prepareShareCard();
 });
 
 document.querySelector('#share-button').addEventListener('click', async () => {
   if (!currentCurse) return;
-  const { code, name, reason, title, verdict, pardoned } = currentCurse;
-  const text = pardoned
-    ? `Проклимёт · № ${code}\n${name} — помилован.\nПроклятие снято. Сегодня тьма отпускает с миром.`
-    : `Проклятие № ${code}\n${title}\n${name}\nЗа то, что: ${reason}\n\n${verdict}`;
-  const url = 'https://yur1mat.github.io/proklinator/';
   actionStatus.textContent = '';
-  if (telegram?.initData && telegram.openTelegramLink) {
-    telegram.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+  if (!shareFile) {
+    await prepareShareCard();
+    if (shareFile) actionStatus.textContent = 'Картинка готова. Нажми «Поделиться» для отправки.';
     return;
   }
   try {
-    if (navigator.share) {
-      await navigator.share({ title: 'Проклимёт', text, url });
+    if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
+      await navigator.share({ title: 'Проклимёт', files: [shareFile], text: BOT_URL });
     } else {
-      await navigator.clipboard.writeText(`${text}\n\n${url}`);
-      actionStatus.textContent = 'Результат скопирован — можно отправить его в чат.';
+      document.querySelector('#share-fallback').classList.remove('hidden');
+      actionStatus.textContent = 'Здесь системная отправка файлов недоступна. Сохрани картинку для отправки.';
     }
   } catch (error) {
-    if (error.name !== 'AbortError') actionStatus.textContent = 'Не удалось поделиться. Попробуй ещё раз.';
+    if (error.name !== 'AbortError') {
+      document.querySelector('#share-fallback').classList.remove('hidden');
+      actionStatus.textContent = 'Окно отправки недоступно. Картинку можно сохранить и отправить вручную.';
+    }
   }
 });
