@@ -158,18 +158,21 @@ window.visualViewport?.addEventListener('resize', syncViewport);
 window.addEventListener('orientationchange', syncViewport);
 requestMobileFullscreen();
 
-try {
-  const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
-  nameInput.value = draft.name || ''; reasonInput.value = draft.reason || '';
-} catch { localStorage.removeItem(DRAFT_KEY); }
-counter.textContent = `${reasonInput.value.length}/300`;
+function clearInputs() {
+  nameInput.value = '';
+  reasonInput.value = '';
+  counter.textContent = '0/300';
+  try { localStorage.removeItem(DRAFT_KEY); } catch { /* Storage may be unavailable. */ }
+}
 
-function saveDraft() {
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ name: nameInput.value, reason: reasonInput.value }));
+clearInputs();
+window.addEventListener('pageshow', clearInputs);
+telegram?.onEvent?.('activated', clearInputs);
+
+function updateReasonCounter() {
   counter.textContent = `${reasonInput.value.length}/300`;
 }
-nameInput.addEventListener('input', saveDraft);
-reasonInput.addEventListener('input', saveDraft);
+reasonInput.addEventListener('input', updateReasonCounter);
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -209,9 +212,9 @@ function resetCurse() {
   if (shareObjectUrl) URL.revokeObjectURL(shareObjectUrl);
   shareObjectUrl = null;
   resultScreen.classList.add('hidden'); formScreen.classList.remove('hidden');
-  nameInput.value = ''; reasonInput.value = ''; counter.textContent = '0/300';
+  clearInputs();
   telegram?.BackButton?.hide();
-  localStorage.removeItem(DRAFT_KEY); window.scrollTo(0, 0); nameInput.focus();
+  window.scrollTo(0, 0); nameInput.focus();
 }
 
 document.querySelector('#reset-button').addEventListener('click', resetCurse);

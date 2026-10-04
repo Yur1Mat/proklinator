@@ -14,12 +14,14 @@ function node(id) {
 const context = { measureText: text => ({ width: text.length * 20 }), fillText() {}, fillRect() {}, strokeRect() {},
   drawImage() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, createRadialGradient: () => ({ addColorStop() {} }) };
 let shared;
+const pageEvents = {}, telegramEvents = {};
+saved.set('proklimet:draft', JSON.stringify({ name: 'Старое имя', reason: 'Старая причина' }));
 const ctx = {
   crypto: require('crypto').webcrypto, Uint8Array, File, URL,
   Image: class { set src(value) { this.onload(); } },
   document: { fonts: { ready: Promise.resolve() }, querySelector: node, documentElement: node('root'),
     createElement: () => ({ getContext: () => context, toBlob: callback => callback(new Blob(['png'], { type: 'image/png' })) }) },
-  window: { innerHeight: 800, addEventListener() {}, scrollTo() {}, Telegram: { WebApp: { ready() {}, expand() {}, platform: 'web' } } },
+  window: { innerHeight: 800, addEventListener: (type, fn) => { pageEvents[type] = fn; }, scrollTo() {}, Telegram: { WebApp: { ready() {}, expand() {}, platform: 'web', onEvent: (type, fn) => { telegramEvents[type] = fn; } } } },
   localStorage: { getItem: k => saved.get(k) || null, setItem: (k,v) => saved.set(k,v), removeItem: k => saved.delete(k) },
   navigator: { canShare: ({files}) => files[0].type === 'image/png', share: async data => { shared = data; } }
 };
@@ -27,6 +29,18 @@ vm.createContext(ctx);
 vm.runInContext(fs.readFileSync('app.js', 'utf8'), ctx);
 const settle = () => new Promise(resolve => setImmediate(resolve));
 (async () => {
+  assert.equal(node('#name').value, '');
+  assert.equal(node('#reason').value, '');
+  assert(!saved.has('proklimet:draft'));
+  for (const reenter of [pageEvents.pageshow, telegramEvents.activated]) {
+    node('#name').value = 'Черновик'; node('#reason').value = 'Причина';
+    node('#reason').handlers.input();
+    assert.equal(node('#reason-counter').textContent, '7/300');
+    assert(!saved.has('proklimet:draft'));
+    reenter();
+    assert.equal(node('#name').value, ''); assert.equal(node('#reason').value, '');
+    assert.equal(node('#reason-counter').textContent, '0/300');
+  }
   node('#name').value = 'Имя'.repeat(20).slice(0,60);
   node('#reason').value = 'Причина '.repeat(50).slice(0,300);
   node('#curse-form').handlers.submit({ preventDefault() {} });
