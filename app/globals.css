@@ -58,7 +58,7 @@ footer { position: absolute; right: calc(18px + var(--safe-right)); bottom: calc
 .sigil { position: relative; display: grid; width: 130px; height: 130px; margin: 25px auto 22px; place-items: center; border: 1px solid var(--accent); border-radius: 50%; box-shadow: 0 0 55px color-mix(in srgb, var(--glow) 32%, transparent), inset 0 0 30px color-mix(in srgb, var(--glow) 18%, transparent); }
 .sigil::before, .sigil::after { content: ''; position: absolute; width: 96px; height: 1px; background: var(--accent); transform: rotate(45deg); opacity: .45; }
 .sigil::after { transform: rotate(-45deg); }
-.sigil span { position: relative; z-index: 1; display: grid; width: 100%; height: 100%; place-items: center; color: var(--accent); font-family: 'Old Standard TT', Georgia, serif; font-size: 32px; line-height: 1; transform: translateY(1px); }
+.sigil span { position: relative; z-index: 1; display: grid; width: 100%; height: 100%; place-items: center; color: var(--accent); font-family: Arial, sans-serif; font-size: 64px; line-height: 1; }
 .result-card h1 { margin: 0; outline: none; font-family: 'Ruslan Display', 'Old Standard TT', serif; font-size: clamp(37px, 10vw, 62px); font-weight: 400; line-height: .95; letter-spacing: .01em; }
 .target { margin: 23px 0 6px; color: var(--accent); font-family: 'Ruslan Display', 'Old Standard TT', serif; font-size: clamp(27px, 8vw, 44px); font-weight: 400; overflow-wrap: anywhere; }
 .reason-label { color: var(--muted); }
@@ -67,7 +67,11 @@ footer { position: absolute; right: calc(18px + var(--safe-right)); bottom: calc
 .verdict span { color: var(--accent); }
 .verdict p { margin: 9px 0 0; font-size: 16px; line-height: 1.45; }
 .secondary-button { width: 100%; min-height: 56px; margin-top: 20px; background: linear-gradient(180deg, var(--accent), #690719); color: #f0e5d7; border: 1px solid color-mix(in srgb, var(--accent) 78%, #f0e5d7); text-shadow: 0 1px 5px #260006; }
-.local-note { margin: 12px 0 0; color: #826d6b; font-size: 10px; }
+.result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.result-actions .secondary-button { margin-top: 10px; padding: 10px 6px; font-size: 13px; }
+.secondary-button:disabled { opacity: .45; cursor: default; }
+.action-status { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+.action-status:empty { display: none; }
 .orbit { position: fixed; z-index: 1; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 50%; pointer-events: none; }
 .orbit-one { width: 70vw; height: 70vw; top: -38vw; right: -28vw; }
 .orbit-two { width: 54vw; height: 54vw; bottom: -29vw; left: -25vw; }
@@ -99,7 +103,7 @@ footer { position: absolute; right: calc(18px + var(--safe-right)); bottom: calc
   .result-screen { padding-top: calc(14px + var(--safe-top)); }
   .sigil { width: 88px; height: 88px; margin: 12px auto; }
   .sigil::before, .sigil::after { width: 68px; }
-  .sigil span { font-size: 25px; }
+  .sigil span { font-size: 46px; }
   .result-card h1 { font-size: 32px; }
   .target { margin-top: 12px; font-size: 27px; }
   .reason { margin: 7px auto 12px; font-size: 14px; }

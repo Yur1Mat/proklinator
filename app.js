@@ -29,6 +29,17 @@ const form = document.querySelector('#curse-form');
 const nameInput = document.querySelector('#name');
 const reasonInput = document.querySelector('#reason');
 const counter = document.querySelector('#reason-counter');
+let currentCurse = null;
+const actionStatus = document.querySelector('#action-status');
+
+function createCurseCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code;
+  do {
+    code = Array.from(crypto.getRandomValues(new Uint8Array(9)), value => alphabet[value % alphabet.length]).join('');
+  } while (!/[A-Z]/.test(code) || !/[2-9]/.test(code));
+  return code;
+}
 
 const telegram = window.Telegram?.WebApp;
 document.documentElement.classList.toggle('telegram-miniapp', Boolean(telegram?.initData));
@@ -87,14 +98,17 @@ form.addEventListener('submit', (event) => {
   const previousVariant = history[0]?.variantId || 0;
   const pool = variants.filter((variant) => variant.id !== previousVariant);
   const variant = pool[Math.floor(Math.random() * pool.length)];
-  const record = { id: crypto.randomUUID(), name, reason, variantId: variant.id, createdAt: new Date().toISOString() };
+  const record = { id: crypto.randomUUID(), code: createCurseCode(), name, reason, variantId: variant.id, createdAt: new Date().toISOString() };
+  currentCurse = { ...record, title: variant.title, verdict: variant.verdict, pardoned: false };
+  actionStatus.textContent = '';
+  document.querySelector('#pardon-button').disabled = false;
   localStorage.setItem(HISTORY_KEY, JSON.stringify([record, ...history].slice(0, 20)));
   telegram?.HapticFeedback?.impactOccurred('heavy');
 
   resultScreen.style.setProperty('--accent', variant.accent);
   resultScreen.style.setProperty('--glow', variant.glow);
-  document.querySelector('#result-kicker').textContent = `${variant.kicker} · ${variant.symbol}`;
-  document.querySelector('#result-symbol').textContent = variant.symbol;
+  document.querySelector('#result-kicker').textContent = `Проклятие № ${record.code}`;
+  document.querySelector('#result-symbol').textContent = '☠';
   document.querySelector('#result-title').textContent = variant.title;
   document.querySelector('#result-name').textContent = name;
   document.querySelector('#result-reason').textContent = `«${reason}»`;
@@ -105,6 +119,7 @@ form.addEventListener('submit', (event) => {
 });
 
 function resetCurse() {
+  currentCurse = null;
   resultScreen.classList.add('hidden'); formScreen.classList.remove('hidden');
   nameInput.value = ''; reasonInput.value = ''; counter.textContent = '0/300';
   telegram?.BackButton?.hide();
@@ -113,3 +128,41 @@ function resetCurse() {
 
 document.querySelector('#reset-button').addEventListener('click', resetCurse);
 telegram?.BackButton?.onClick(resetCurse);
+
+document.querySelector('#pardon-button').addEventListener('click', () => {
+  if (!currentCurse || currentCurse.pardoned) return;
+  currentCurse.pardoned = true;
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { /* No saved history. */ }
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.map(record => record.id === currentCurse.id ? { ...record, pardoned: true } : record)));
+  document.querySelector('#result-title').textContent = 'Помилован';
+  document.querySelector('#result-verdict').textContent = 'Проклятие снято. Сегодня тьма отпускает с миром.';
+  document.querySelector('#result-symbol').textContent = '⛧';
+  document.querySelector('#pardon-button').disabled = true;
+  actionStatus.textContent = 'Милость дарована.';
+  telegram?.HapticFeedback?.notificationOccurred('success');
+});
+
+document.querySelector('#share-button').addEventListener('click', async () => {
+  if (!currentCurse) return;
+  const { code, name, reason, title, verdict, pardoned } = currentCurse;
+  const text = pardoned
+    ? `Проклимёт · № ${code}\n${name} — помилован.\nПроклятие снято. Сегодня тьма отпускает с миром.`
+    : `Проклятие № ${code}\n${title}\n${name}\nЗа то, что: ${reason}\n\n${verdict}`;
+  const url = 'https://yur1mat.github.io/proklinator/';
+  actionStatus.textContent = '';
+  if (telegram?.initData && telegram.openTelegramLink) {
+    telegram.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+    return;
+  }
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Проклимёт', text, url });
+    } else {
+      await navigator.clipboard.writeText(`${text}\n\n${url}`);
+      actionStatus.textContent = 'Результат скопирован — можно отправить его в чат.';
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') actionStatus.textContent = 'Не удалось поделиться. Попробуй ещё раз.';
+  }
+});
