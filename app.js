@@ -40,6 +40,32 @@ const shareButton = document.querySelector('#share-button');
 let shareFile = null;
 let shareObjectUrl = null;
 let cardRevision = 0;
+let currentLanguage = 'ru';
+const LANGUAGE_KEY = 'proklimet:language';
+
+function t(key, language = currentLanguage) {
+  return translations[language][key];
+}
+
+function setLanguage(language) {
+  currentLanguage = language === 'en' ? 'en' : 'ru';
+  document.documentElement.lang = currentLanguage;
+  document.title = t('brand');
+  document.querySelector('meta[name="description"]').setAttribute('content', t('meta'));
+  const labels = {
+    '.intro h1': 'heading', '.description': 'description', 'label[for="name"]': 'name',
+    'label[for="reason"]': 'reason', '.curse-button span': 'curse', 'footer': 'footer',
+    '.reason-label': 'because', '.verdict span': 'verdict', '#pardon-button': 'pardon',
+    '#reset-button': 'again', '#share-button': 'share', '#download-card': 'download',
+    '#telegram-share': 'telegram', '#share-fallback p': 'fallback'
+  };
+  for (const [selector, key] of Object.entries(labels)) document.querySelector(selector).textContent = t(key);
+  nameInput.placeholder = t('namePlaceholder');
+  reasonInput.placeholder = t('reasonPlaceholder');
+  document.querySelector('.language-switch').setAttribute('aria-label', t('language'));
+  for (const locale of ['ru', 'en']) document.querySelector(`#language-${locale}`).setAttribute('aria-pressed', String(locale === currentLanguage));
+  try { localStorage.setItem(LANGUAGE_KEY, currentLanguage); } catch { /* Language still works without storage. */ }
+}
 
 function loadCardImage(src) {
   return new Promise((resolve, reject) => {
@@ -86,17 +112,17 @@ async function prepareShareCard() {
     background.addColorStop(1, curse.pardoned ? '#06140b' : '#100312');
     ctx.fillStyle = background; ctx.fillRect(0, 0, 1080, 2600);
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    let y = cardText(ctx, `ПРОКЛЯТИЕ № ${curse.code}`, 85, '26px "Old Standard TT"', accent, 920, 36);
+    let y = cardText(ctx, `${t('curseNumber', curse.language).toUpperCase()} ${curse.code}`, 85, '26px "Old Standard TT"', accent, 920, 36);
     ctx.drawImage(emblem, 355, y + 10, 370, 370);
-    y = cardText(ctx, curse.pardoned ? 'Помилован' : curse.title, y + 400, '64px "Ruslan Display"', '#e9dfd2', 900, 70);
+    y = cardText(ctx, curse.pardoned ? t('pardoned', curse.language) : curse.title, y + 400, '64px "Ruslan Display"', '#e9dfd2', 900, 70);
     y = cardText(ctx, curse.name, y + 32, '52px "Ruslan Display"', accent, 900, 60);
-    y = cardText(ctx, 'ЗА ТО, ЧТО', y + 28, '24px "Old Standard TT"', '#b4a89b', 900, 30);
+    y = cardText(ctx, t('because', curse.language).toUpperCase(), y + 28, '24px "Old Standard TT"', '#b4a89b', 900, 30);
     y = cardText(ctx, `«${curse.reason}»`, y + 16, 'italic 32px "Old Standard TT"', '#e9dfd2', 900, 42);
     ctx.strokeStyle = accent; ctx.beginPath(); ctx.moveTo(90, y + 25); ctx.lineTo(990, y + 25); ctx.stroke();
-    y = cardText(ctx, curse.pardoned ? 'МИЛОСТЬ ДАРОВАНА' : 'ПРИГОВОР', y + 55, '26px "Old Standard TT"', accent, 900, 34);
-    y = cardText(ctx, curse.pardoned ? 'Проклятие снято. Сегодня тьма отпускает с миром.' : curse.verdict, y + 20, '34px "Old Standard TT"', '#e9dfd2', 900, 44);
+    y = cardText(ctx, t(curse.pardoned ? 'mercy' : 'verdict', curse.language).toUpperCase(), y + 55, '26px "Old Standard TT"', accent, 900, 34);
+    y = cardText(ctx, curse.pardoned ? t('pardonVerdict', curse.language) : curse.verdict, y + 20, '34px "Old Standard TT"', '#e9dfd2', 900, 44);
     const footerY = Math.max(1625, y + 80);
-    cardText(ctx, 'ПРОКЛИМЁТ', footerY, '38px "Ruslan Display"', accent, 900, 48);
+    cardText(ctx, t('brand', curse.language), footerY, '38px "Ruslan Display"', accent, 900, 48);
     cardText(ctx, BOT_URL, footerY + 70, '30px "Old Standard TT"', '#e9dfd2', 900, 38);
     const output = document.createElement('canvas');
     output.width = 1080; output.height = footerY + 175;
@@ -110,9 +136,9 @@ async function prepareShareCard() {
     shareObjectUrl = URL.createObjectURL(blob);
     const download = document.querySelector('#download-card');
     download.href = shareObjectUrl; download.download = shareFile.name;
-    document.querySelector('#telegram-share').href = `https://t.me/share/url?url=${encodeURIComponent(BOT_URL)}&text=${encodeURIComponent(`${curse.name} — ${curse.pardoned ? 'помилован' : curse.title}`)}`;
+    document.querySelector('#telegram-share').href = `https://t.me/share/url?url=${encodeURIComponent(BOT_URL)}&text=${encodeURIComponent(`${curse.name} — ${curse.pardoned ? t('pardoned', curse.language) : curse.title}`)}`;
   } catch {
-    if (revision === cardRevision) actionStatus.textContent = 'Картинка не загрузилась. Нажми «Поделиться», чтобы попробовать ещё раз.';
+    if (revision === cardRevision) actionStatus.textContent = t('imageError');
   } finally {
     if (revision === cardRevision) shareButton.disabled = false;
   }
@@ -128,6 +154,14 @@ function createCurseCode() {
 }
 
 const telegram = window.Telegram?.WebApp;
+let initialLanguage = telegram?.initDataUnsafe?.user?.language_code?.startsWith('en') ? 'en' : 'ru';
+try {
+  const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
+  if (savedLanguage === 'ru' || savedLanguage === 'en') initialLanguage = savedLanguage;
+} catch { /* Use the initial language. */ }
+setLanguage(initialLanguage);
+document.querySelector('#language-ru').addEventListener('click', () => setLanguage('ru'));
+document.querySelector('#language-en').addEventListener('click', () => setLanguage('en'));
 document.documentElement.classList.toggle('telegram-miniapp', Boolean(telegram?.initData));
 telegram?.ready(); telegram?.expand();
 telegram?.setHeaderColor?.('#130406'); telegram?.setBackgroundColor?.('#100204'); telegram?.setBottomBarColor?.('#100204');
@@ -188,7 +222,8 @@ form.addEventListener('submit', (event) => {
   const pool = variants.filter((variant) => variant.id !== previousVariant);
   const variant = pool[Math.floor(Math.random() * pool.length)];
   const record = { id: crypto.randomUUID(), code: createCurseCode(), name, reason, variantId: variant.id, createdAt: new Date().toISOString() };
-  currentCurse = { ...record, title: variant.title, verdict: variant.verdict, accent: variant.accent, pardoned: false };
+  const [title, verdict] = currentLanguage === 'en' ? englishVariants[variant.id - 1] : [variant.title, variant.verdict];
+  currentCurse = { ...record, title, verdict, language: currentLanguage, accent: variant.accent, pardoned: false };
   actionStatus.textContent = '';
   document.querySelector('#pardon-button').disabled = false;
   resultScreen.classList.remove('pardoned');
@@ -197,12 +232,12 @@ form.addEventListener('submit', (event) => {
 
   resultScreen.style.setProperty('--accent', variant.accent);
   resultScreen.style.setProperty('--glow', variant.glow);
-  document.querySelector('#result-kicker').textContent = `Проклятие № ${record.code}`;
+  document.querySelector('#result-kicker').textContent = `${t('curseNumber')} ${record.code}`;
   document.querySelector('#result-symbol').src = './app/ram-skull.png';
-  document.querySelector('#result-title').textContent = variant.title;
+  document.querySelector('#result-title').textContent = title;
   document.querySelector('#result-name').textContent = name;
   document.querySelector('#result-reason').textContent = `«${reason}»`;
-  document.querySelector('#result-verdict').textContent = variant.verdict;
+  document.querySelector('#result-verdict').textContent = verdict;
   formScreen.classList.add('hidden'); resultScreen.classList.remove('hidden');
   telegram?.BackButton?.show();
   document.querySelector('#result-title').focus(); window.scrollTo(0, 0);
@@ -230,12 +265,12 @@ document.querySelector('#pardon-button').addEventListener('click', () => {
   let history = [];
   try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { /* No saved history. */ }
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.map(record => record.id === currentCurse.id ? { ...record, pardoned: true } : record)));
-  document.querySelector('#result-title').textContent = 'Помилован';
-  document.querySelector('#result-verdict').textContent = 'Проклятие снято. Сегодня тьма отпускает с миром.';
+  document.querySelector('#result-title').textContent = t('pardoned');
+  document.querySelector('#result-verdict').textContent = t('pardonVerdict');
   resultScreen.classList.add('pardoned');
   document.querySelector('#result-symbol').src = './app/angel-wings.png';
   document.querySelector('#pardon-button').disabled = true;
-  actionStatus.textContent = 'Милость дарована.';
+  actionStatus.textContent = t('mercy');
   telegram?.HapticFeedback?.notificationOccurred('success');
   prepareShareCard();
 });
@@ -245,20 +280,20 @@ document.querySelector('#share-button').addEventListener('click', async () => {
   actionStatus.textContent = '';
   if (!shareFile) {
     await prepareShareCard();
-    if (shareFile) actionStatus.textContent = 'Картинка готова. Нажми «Поделиться» для отправки.';
+    if (shareFile) actionStatus.textContent = t('imageReady');
     return;
   }
   try {
     if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
-      await navigator.share({ title: 'Проклимёт', files: [shareFile], text: BOT_URL });
+      await navigator.share({ title: t('brand'), files: [shareFile], text: BOT_URL });
     } else {
       document.querySelector('#share-fallback').classList.remove('hidden');
-      actionStatus.textContent = 'Здесь системная отправка файлов недоступна. Сохрани картинку для отправки.';
+      actionStatus.textContent = t('unsupported');
     }
   } catch (error) {
     if (error.name !== 'AbortError') {
       document.querySelector('#share-fallback').classList.remove('hidden');
-      actionStatus.textContent = 'Окно отправки недоступно. Картинку можно сохранить и отправить вручную.';
+      actionStatus.textContent = t('shareError');
     }
   }
 });

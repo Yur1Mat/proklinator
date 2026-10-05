@@ -7,7 +7,7 @@ function node(id) {
     const classes = new Set();
     nodes.set(id, { value: '', textContent: '', handlers: {}, style: { setProperty() {} },
       classList: { add: x => classes.add(x), remove: x => classes.delete(x), contains: x => classes.has(x), toggle() {} },
-      focus() {}, addEventListener(type, fn) { this.handlers[type] = fn; } });
+      focus() {}, setAttribute(key, value) { this[key] = value; }, addEventListener(type, fn) { this.handlers[type] = fn; } });
   }
   return nodes.get(id);
 }
@@ -26,6 +26,7 @@ const ctx = {
   navigator: { canShare: ({files}) => files[0].type === 'image/png', share: async data => { shared = data; } }
 };
 vm.createContext(ctx);
+vm.runInContext(fs.readFileSync('app/i18n.js', 'utf8'), ctx);
 vm.runInContext(fs.readFileSync('app.js', 'utf8'), ctx);
 const settle = () => new Promise(resolve => setImmediate(resolve));
 (async () => {
@@ -64,6 +65,22 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   await node('#share-button').handlers.click();
   assert(node('#action-status').textContent.includes('недоступно'));
   node('#reset-button').handlers.click();
+  node('#language-en').handlers.click();
+  assert.equal(node('.intro h1').textContent, 'Curse');
+  assert.equal(saved.get('proklimet:language'), 'en');
+  node('#name').value = 'Alex'; node('#reason').value = 'For that voice note';
+  node('#curse-form').handlers.submit({ preventDefault() {} });
+  await settle();
+  assert(node('#result-kicker').textContent.startsWith('Curse No.'));
+  assert(!/[А-Яа-яЁё]/.test(node('#result-title').textContent));
+  assert(!/[А-Яа-яЁё]/.test(node('#result-verdict').textContent));
+  node('#pardon-button').handlers.click();
+  await settle();
+  assert.equal(node('#result-title').textContent, 'Pardoned');
+  assert(node('#result-verdict').textContent.startsWith('The curse is lifted'));
+  node('#reset-button').handlers.click();
+  node('#language-ru').handlers.click();
+  assert.equal(node('.intro h1').textContent, 'Прокляни');
   node('#curse-form').handlers.submit({ preventDefault() {} });
   console.log('PNG preparation, file sharing, pardon state, stored status and unsupported-browser fallback passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

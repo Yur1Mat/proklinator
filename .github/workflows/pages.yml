@@ -28,6 +28,7 @@ jobs:
           cp index.html app.js _site/
           mkdir _site/app
           cp app/globals.css _site/app/
+          cp app/i18n.js _site/app/
           cp app/ritual-bg.webp _site/app/
           cp app/ram-skull.png app/angel-wings.png _site/app/
           cp -R app/fonts _site/app/

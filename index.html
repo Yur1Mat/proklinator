@@ -8,11 +8,16 @@
     <title>Проклимёт</title>
     <link rel="stylesheet" href="./app/globals.css" />
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+    <script src="./app/i18n.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
   <body>
     <main class="app-shell" id="form-screen">
       <div class="noise"></div>
+      <div class="language-switch" role="group" aria-label="Язык">
+          <button id="language-ru" type="button" aria-pressed="true">RU</button>
+          <button id="language-en" type="button" aria-pressed="false">EN</button>
+        </div>
       <div class="ritual-content">
         <section class="intro">
         <div class="ritual-mark" aria-hidden="true"><span>⛧</span></div>
@@ -38,9 +43,9 @@
         <h1 id="result-title" tabindex="-1"></h1>
         <p class="target" id="result-name"></p><p class="reason-label">за то, что</p><p class="reason" id="result-reason"></p>
         <div class="verdict"><span>Приговор</span><p id="result-verdict"></p></div>
-        <button class="secondary-button" id="reset-button" type="button">Проклясть ещё кого-нибудь</button>
+        <button class="secondary-button" id="pardon-button" type="button">Помиловать</button>
         <div class="result-actions">
-          <button class="secondary-button" id="pardon-button" type="button"><img class="button-wing wing-left" src="./app/angel-wings.png" alt="" /><span>Помиловать</span><img class="button-wing wing-right" src="./app/angel-wings.png" alt="" /></button>
+          <button class="secondary-button" id="reset-button" type="button">Проклясть ещё</button>
           <button class="secondary-button" id="share-button" type="button">Поделиться</button>
         </div>
         <p class="action-status" id="action-status" role="status"></p>
