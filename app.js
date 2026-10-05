@@ -19,7 +19,11 @@ const variants = [
   ['Проклятие № 18', 'Приветствие не принято', 'Пусть он всегда машет в ответ человеку, который здоровался с кем-то у него за спиной.', 'XVIII', '#d94559', '#79121f'],
   ['Проклятие № 19', 'Микрофон был включён', 'Пусть кнопка mute предаёт его ровно в момент хруста, вздоха или честного мнения о созвоне.', 'XIX', '#ad1730', '#520511'],
   ['Проклятие № 20', 'Карма собрала комбо', 'Пусть мокрый носок, забытый пароль, разряженный телефон и сообщение «нам надо поговорить» приходят в один день.', 'XX', '#c4203d', '#650716'],
-].map(([kicker, title, verdict, symbol, accent, glow], index) => ({ id: index + 1, kicker, title, verdict, symbol, accent, glow }));
+].map(([kicker, title, verdict, symbol], index) => {
+  const palette = ['#ff438f', '#e0ff45', '#d887ff', '#ff7650', '#58f5dd'];
+  const accent = palette[index % palette.length];
+  return { id: index + 1, kicker, title, verdict, symbol, accent, glow: accent };
+});
 
 const DRAFT_KEY = 'proklimet:draft';
 const HISTORY_KEY = 'proklimet:history';
@@ -76,10 +80,10 @@ async function prepareShareCard() {
     const canvas = document.createElement('canvas');
     canvas.width = 1080; canvas.height = 2600;
     const ctx = canvas.getContext('2d');
-    const accent = curse.pardoned ? '#91d991' : '#e05262';
+    const accent = curse.pardoned ? '#b5ff45' : curse.accent;
     const background = ctx.createRadialGradient(540, 350, 30, 540, 650, 1300);
-    background.addColorStop(0, curse.pardoned ? '#21472d' : '#490b1c');
-    background.addColorStop(1, curse.pardoned ? '#06140b' : '#100204');
+    background.addColorStop(0, curse.pardoned ? '#246138' : '#581449');
+    background.addColorStop(1, curse.pardoned ? '#06140b' : '#100312');
     ctx.fillStyle = background; ctx.fillRect(0, 0, 1080, 2600);
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     let y = cardText(ctx, `ПРОКЛЯТИЕ № ${curse.code}`, 85, '26px "Old Standard TT"', accent, 920, 36);
@@ -184,7 +188,7 @@ form.addEventListener('submit', (event) => {
   const pool = variants.filter((variant) => variant.id !== previousVariant);
   const variant = pool[Math.floor(Math.random() * pool.length)];
   const record = { id: crypto.randomUUID(), code: createCurseCode(), name, reason, variantId: variant.id, createdAt: new Date().toISOString() };
-  currentCurse = { ...record, title: variant.title, verdict: variant.verdict, pardoned: false };
+  currentCurse = { ...record, title: variant.title, verdict: variant.verdict, accent: variant.accent, pardoned: false };
   actionStatus.textContent = '';
   document.querySelector('#pardon-button').disabled = false;
   resultScreen.classList.remove('pardoned');
